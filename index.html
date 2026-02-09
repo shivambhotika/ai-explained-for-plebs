@@ -872,33 +872,31 @@
             </div>
 
             <div class="main-grid">
-                <!-- THE SKILL CURVE - ENLARGED CHART -->
-                <div class="knowledge-grid">
-                    <div class="knowledge-chart-panel">
-                        <div class="panel-header yellow">THE SKILL CURVE</div>
-                        <div style="padding: 40px;">
-                            <div style="font-size: 0.95rem; margin-bottom: 15px; color: #666; font-weight: 600;">
-                                Three core skills. All racing toward 100%. None of them stopping.
-                            </div>
-                            <canvas id="capabilityChart" style="max-height: 400px;"></canvas>
-                            <div style="margin-top: 20px; font-size: 0.85rem; color: #666; line-height: 1.6;">
-                                <strong>Knowledge</strong> = standardized test scores across 57 subjects (history, law, medicine, etc.)<br>
-                                <strong>Coding</strong> = ability to write working software from scratch<br>
-                                <strong>Math</strong> = grade-school word problems through advanced proofs
-                            </div>
+                <!-- THE SKILL CURVE - FULL WIDTH CHART -->
+                <div class="panel full-width">
+                    <div class="panel-header yellow">THE SKILL CURVE</div>
+                    <div style="padding: 40px;">
+                        <div style="font-size: 0.95rem; margin-bottom: 15px; color: #666; font-weight: 600;">
+                            Three core skills. All racing toward 100%. None of them stopping.
+                        </div>
+                        <canvas id="capabilityChart" style="max-height: 400px;"></canvas>
+                        <div style="margin-top: 20px; font-size: 0.85rem; color: #666; line-height: 1.6;">
+                            <strong>Knowledge</strong> = standardized test scores across 57 subjects (history, law, medicine, etc.)<br>
+                            <strong>Coding</strong> = ability to write working software from scratch<br>
+                            <strong>Math</strong> = grade-school word problems through advanced proofs
                         </div>
                     </div>
+                </div>
 
-                    <!-- KNOWLEDGE STAT -->
-                    <div class="knowledge-stats-panel">
-                        <div class="panel-header yellow">KNOWLEDGE TESTS</div>
-                        <div class="panel-body">
-                            <div class="stat-label">STANDARDIZED EXAMS (57 SUBJECTS)</div>
-                            <div class="stat-big" style="color: #ff8800;">93%</div>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">accurate today</div>
-                            <div class="highlight-box">
-                                Can pass the bar exam, medical licensing boards, and most PhD qualifying exams. Was 44% in 2020.
-                            </div>
+                <!-- THREE STAT BOXES BELOW -->
+                <div class="panel">
+                    <div class="panel-header yellow">KNOWLEDGE TESTS</div>
+                    <div class="panel-body">
+                        <div class="stat-label">STANDARDIZED EXAMS (57 SUBJECTS)</div>
+                        <div class="stat-big" style="color: #ff8800;">93%</div>
+                        <div style="font-size: 0.9rem; color: #666; margin-top: 10px;">accurate today</div>
+                        <div class="highlight-box">
+                            Can pass the bar exam, medical licensing boards, and most PhD qualifying exams. Was 44% in 2020.
                         </div>
                     </div>
                 </div>
@@ -1671,8 +1669,20 @@
                     }
                 },
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'AI Model',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
                     y: { 
                         beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Training Cost (Millions USD)',
+                            font: { size: 12, weight: 'bold' }
+                        },
                         ticks: { callback: (value) => '$' + value + 'M' }
                     }
                 }
@@ -1686,23 +1696,54 @@
             if (view === 'cost') {
                 computeChart.data.datasets[0].data = computeData.costs;
                 computeChart.options.scales.y.type = 'linear';
+                computeChart.options.scales.y.title = {
+                    display: true,
+                    text: 'Training Cost (Millions USD)',
+                    font: { size: 12, weight: 'bold' }
+                };
+                computeChart.options.scales.x.title = {
+                    display: true,
+                    text: 'AI Model',
+                    font: { size: 12, weight: 'bold' }
+                };
                 computeChart.options.scales.y.ticks.callback = (value) => '$' + value + 'M';
                 computeChart.options.plugins.tooltip.callbacks.label = (context) => '$' + context.parsed.y + 'M to train';
+                computeChart.options.plugins.tooltip.callbacks.title = (context) => context[0].label;
             } else {
                 computeChart.data.datasets[0].data = computeData.flops;
                 computeChart.options.scales.y.type = 'logarithmic';
+                computeChart.options.scales.y.title = {
+                    display: true,
+                    text: 'Computing Power (FLOPS)',
+                    font: { size: 12, weight: 'bold' }
+                };
+                computeChart.options.scales.x.title = {
+                    display: true,
+                    text: 'AI Model',
+                    font: { size: 12, weight: 'bold' }
+                };
                 computeChart.options.scales.y.ticks.callback = (value) => {
                     const exp = Math.log10(value);
-                    return Number.isInteger(exp) ? '10^' + exp : '';
+                    if (Number.isInteger(exp)) {
+                        return '10^' + exp + ' FLOPS';
+                    }
+                    return '';
                 };
+                computeChart.options.plugins.tooltip.callbacks.title = (context) => context[0].label;
                 computeChart.options.plugins.tooltip.callbacks.label = (context) => {
-                    const labels = [
-                        'Your laptop', 'A room of servers', 'Small data center', 
-                        'Large data center', 'A small country\'s compute', 
-                        'Incomprehensible', 'Truly absurd', 'Beyond comprehension',
-                        'What even is this', 'Math broke', 'GPT-5 level'
-                    ];
-                    return labels[context.dataIndex] || 'A lot of math';
+                    const exp = Math.floor(Math.log10(context.parsed.y));
+                    const labels = {
+                        21: 'Your laptop (10²¹ FLOPS)',
+                        22: 'A room of servers (10²² FLOPS)',
+                        23: 'Small data center (10²³ FLOPS)',
+                        24: 'Large data center (10²⁴ FLOPS)',
+                        25: 'GPT-4 level compute (10²⁵ FLOPS)',
+                        26: 'GPT-5 level compute (10²⁶ FLOPS)'
+                    };
+                    return labels[exp] || 'Massive compute (10^' + exp + ' FLOPS)';
+                };
+                computeChart.options.plugins.tooltip.callbacks.afterLabel = (context) => {
+                    return 'FLOPS = Floating Point Operations Per Second';
                 };
             }
             computeChart.update();
@@ -1715,7 +1756,7 @@
                 labels: ['2020', '2021', '2022', '2023', '2024', '2025'],
                 datasets: [
                     {
-                        label: 'Knowledge',
+                        label: 'Knowledge (57 subjects)',
                         data: [44, 56, 68, 86, 89, 93],
                         borderColor: '#ff8800',
                         backgroundColor: 'rgba(255, 136, 0, 0.1)',
@@ -1725,7 +1766,7 @@
                         fill: true
                     },
                     {
-                        label: 'Coding',
+                        label: 'Coding (software engineering)',
                         data: [29, 48, 67, 74, 92, 97],
                         borderColor: '#00cc66',
                         backgroundColor: 'rgba(0, 204, 102, 0.1)',
@@ -1735,7 +1776,7 @@
                         fill: true
                     },
                     {
-                        label: 'Math',
+                        label: 'Math (word problems → proofs)',
                         data: [0, 35, 57, 92, 96, 99],
                         borderColor: '#9933ff',
                         backgroundColor: 'rgba(153, 51, 255, 0.1)',
@@ -1754,18 +1795,25 @@
                         position: 'top',
                         labels: { 
                             padding: 20,
-                            font: { size: 14, weight: 'bold' }
+                            font: { size: 13, weight: 'bold' },
+                            usePointStyle: true,
+                            pointStyle: 'rectRounded'
                         }
                     },
                     tooltip: {
                         backgroundColor: '#000',
                         padding: 15,
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
                         callbacks: {
+                            label: (context) => {
+                                return context.dataset.label.split(' ')[0] + ': ' + context.parsed.y + '% accuracy';
+                            },
                             afterLabel: (context) => {
                                 const explanations = {
-                                    'Knowledge': 'Standardized test performance across 57 subjects',
-                                    'Coding': 'Ability to write working software from scratch',
-                                    'Math': 'From grade-school word problems to advanced proofs'
+                                    'Knowledge (57 subjects)': 'Tests across history, law, medicine, etc.',
+                                    'Coding (software engineering)': 'Writing working code from scratch',
+                                    'Math (word problems → proofs)': 'From grade school to advanced math'
                                 };
                                 return explanations[context.dataset.label];
                             }
@@ -1773,9 +1821,21 @@
                     }
                 },
                 scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year',
+                            font: { size: 12, weight: 'bold' }
+                        }
+                    },
                     y: {
                         min: 0,
                         max: 100,
+                        title: {
+                            display: true,
+                            text: 'Accuracy Rate (%)',
+                            font: { size: 12, weight: 'bold' }
+                        },
                         ticks: { callback: (value) => value + '%' }
                     }
                 }
