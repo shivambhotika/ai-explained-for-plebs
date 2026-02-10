@@ -1,1 +1,1 @@
-# the-cost-of-thinking
+# ai-explained-for-plebs
